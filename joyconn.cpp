@@ -2,7 +2,7 @@
 
 #include <array>
 
-static JoyconnService Joyconn;
+JoyconnService Joyconn;
 
 constexpr float mapfloat(long x, long in_min, long in_max, float out_min, float out_max)
 {
@@ -59,7 +59,7 @@ JoyconnData::JoyconnData(uint8_t *data, uint16_t len)
         .z = ((int16_t)(data[15] | data[16] << 8)) * acc_factor};
 }
 
-void JoyconnData::print()
+void JoyconnData::print() const 
 {
     Serial.println("Buttons:");
     Serial.print("  Top:      ");
@@ -92,10 +92,10 @@ void JoyconnData::print()
 
 void sensor_notify_callback(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
 {
-    Joyconn.latest_data = {data, len};
+    Joyconn.set_data({data, len});
 }
 
-JoyconnService::Joyconn() : sensor_service(sensor_service_uuid.data()), sensor_characteristic(sensor_characteristic_uuid.data())
+JoyconnService::JoyconnService() : sensor_service(sensor_service_uuid.data()), sensor_characteristic(sensor_characteristic_uuid.data())
 {
 }
 
@@ -114,9 +114,14 @@ JoyconnData JoyconnService::read()
     return {buffer, length};
 }
 
-const JoyconnData &get_data()
+const JoyconnData & JoyconnService::get_data()
 {
     return latest_data;
+}
+
+void  JoyconnService::set_data(const JoyconnData & data)
+{
+    latest_data = data;  
 }
 
 bool JoyconnService::is_connected()
@@ -155,11 +160,6 @@ void JoyconnService::connect(uint16_t conn_handle)
     }
 }
 
-void JoyconnService::connect()
-{
-    sensor_characteristic.disconnect();
-    sensor_service.disconnect();
-}
 
 bool JoyconnService::advertiser_is_joyconn(ble_gap_evt_adv_report_t *report)
 {

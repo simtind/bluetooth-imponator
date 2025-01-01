@@ -29,7 +29,9 @@ struct JoyconnMotion
     JoyconnMotion accel;  
 
     JoyconnData(uint8_t * data, uint16_t len);
-    void print();
+    JoyconnData() = default;
+
+    void print() const;
 };
 
 struct JoyconnService
@@ -40,17 +42,17 @@ struct JoyconnService
     JoyconnData latest_data;
 
   public:
-    Joyconn();
+    JoyconnService();
 
     void begin();
     
     bool advertiser_is_joyconn(ble_gap_evt_adv_report_t *report);
     void connect(uint16_t conn_handle);
-    void disconnect();
     bool is_connected();
     
     JoyconnData read();
     const JoyconnData & get_data();
+    void  set_data(const JoyconnData &);
 };
 
 extern JoyconnService Joyconn;
